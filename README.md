@@ -8,6 +8,11 @@ If you want to install the program without a development environment, you can us
 
 Make sure you have installed [.NET Framework 4.8.1 Runtime or higher](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net481).
 
+## Known Issues
+- Only works on Windows
+- Fullscreen apps don't work
+- Size multiplication doesn't work properly with values higher than 1.0
+
 ## Development
 
 If you want to contribute to this project, you need the following prerequisites:
