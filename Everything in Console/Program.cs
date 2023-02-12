@@ -35,7 +35,7 @@ public class Program
 
     private const int DELAY = 10;
 
-    private const string brightnessMap = @".'`^,:;Il!i><~+_-?][}{1)(|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+    private const string brightnessMap = @" .'`^,:;Il!i><~+_-?][}{1)(|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
     private const string path = "debug";
 
     public static void Main()
