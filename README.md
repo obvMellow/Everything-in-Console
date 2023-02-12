@@ -2,6 +2,8 @@
 
 A command line tool that lets you stream a window to console as ASCII characters.
 
+[Demonstration video](https://youtu.be/MzdghtOE_U4)
+
 ## Installation
 
 If you want to install the program without a development environment, you can use the setup zip provided in the [Releases](https://github.com/obvMellow/Everything-in-Console/releases) page.
