@@ -4,7 +4,6 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 
 public class Program
 {
@@ -35,8 +34,6 @@ public class Program
     private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
     #endregion DllImports
-
-    private const int DELAY = 10;
 
     private const string brightnessMap = @" .'`^,:;Il!i><~+_-?][}{1)(|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
     private const string path = "debug";
@@ -126,22 +123,21 @@ public class Program
                     Console.WriteLine(frame);
 
 #if DEBUG
-                    using (StreamWriter streamWriter = File.CreateText($"ascii-image{count}.txt"))
+                    using (StreamWriter streamWriter = File.CreateText($"ascii-image{frameCount}.txt"))
                         streamWriter.WriteLine(frame);
 #endif
                 }
                 frameCount++;
-
-                // Wait for a short time before trying again
-                Thread.Sleep(DELAY);
             }
         }
         catch (Exception e)
         {
             WriteColored($"[ERROR] {e.Message}", ConsoleColor.Red, new Vector2(1, 5));
-            Console.WriteLine("\nPress ENTER key to exit...");
+            Console.WriteLine("\nPress ENTER key to restart...");
             Console.ReadKey(true);
-            return;
+
+            Console.Clear();
+            Main();
         }
     }
 
