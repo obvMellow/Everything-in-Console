@@ -29,6 +29,9 @@ public class Program
     [DllImport("user32.dll")]
     private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+    [DllImport("user32.dll")]
+    private static extern bool IsWindow(IntPtr hWnd);
+
     private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
     #endregion DllImports
@@ -79,7 +82,7 @@ public class Program
 
         Console.Clear();
 
-        IntPtr hWnd = FindWindow(null, windowTitle); ;
+        IntPtr hWnd = FindWindow(null, windowTitle);
 
         if (hWnd == IntPtr.Zero)
         {
@@ -92,6 +95,10 @@ public class Program
         Console.CursorVisible = false;
         while (true)
         {
+            // Check if the window is still present
+            if (!IsWindow(hWnd))
+                break;
+
             // Set the window to the foreground
             SetForegroundWindow(hWnd);
 
