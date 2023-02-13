@@ -43,96 +43,103 @@ public class Program
 
     public static void Main()
     {
-        // Print current window titles.
-        Console.WriteLine("========================================Window Titles========================================");
-        EnumWindows(new EnumWindowsProc(EnumWindowCallback), IntPtr.Zero);
-        Console.WriteLine("========================================Window Titles========================================");
+        try
+        {
+            // Print current window titles.
+            Console.WriteLine("========================================Window Titles========================================");
+            EnumWindows(new EnumWindowsProc(EnumWindowCallback), IntPtr.Zero);
+            Console.WriteLine("========================================Window Titles========================================");
 
-        WriteColored("[INFO] Cleaning up...\n", ConsoleColor.Yellow, new Vector2(1, 4));
+            WriteColored("[INFO] Cleaning up...\n", ConsoleColor.Yellow, new Vector2(1, 4));
 
-        if (Directory.Exists(path))
-            Directory.Delete(path, true);
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
 
 #if DEBUG
-        Directory.CreateDirectory(path);
-        Directory.SetCurrentDirectory(path);
+            Directory.CreateDirectory(path);
+            Directory.SetCurrentDirectory(path);
 #endif
 
-        string windowTitle = null;
+            string windowTitle = null;
 
-        while (string.IsNullOrEmpty(windowTitle))
-        {
-            WriteColored("[INPUT] Please enter the title of the program you want to capture: ", ConsoleColor.Cyan, new Vector2(1, 5));
-            windowTitle = Console.ReadLine();
+            while (string.IsNullOrEmpty(windowTitle))
+            {
+                WriteColored("[INPUT] Please enter the title of the program you want to capture: ", ConsoleColor.Cyan, new Vector2(1, 5));
+                windowTitle = Console.ReadLine();
+            }
+
+            float sizeMultiplier = 1.0f;
+            string sizeMultiplierStr = "";
+
+            do
+            {
+                WriteColored("[INPUT] Please enter a size multiplier. Default value is 1.0 (Larger values than 1.0 may result in unstable outputs): ",
+                    ConsoleColor.Cyan,
+                    new Vector2(1, 5));
+                sizeMultiplierStr = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(sizeMultiplierStr))
+                    break;
+            } while (!float.TryParse(sizeMultiplierStr, out sizeMultiplier));
+
+            Console.Clear();
+
+            IntPtr hWnd = FindWindow(null, windowTitle);
+
+            if (hWnd == IntPtr.Zero)
+            {
+                throw new ArgumentException($"Windows with title \"{windowTitle}\" not found!\n");
+            }
+
+            int count = 0;
+            Console.CursorVisible = false;
+            while (true)
+            {
+                // Check if the window is still present
+                if (!IsWindow(hWnd))
+                    break;
+
+                // Set the window to the foreground
+                SetForegroundWindow(hWnd);
+
+                // Capture the window image
+                Rectangle rect = new Rectangle(0, 0, 0, 0);
+                GetWindowRect(hWnd, ref rect);
+                using (Bitmap bitmap = new Bitmap(rect.Width, rect.Height))
+                {
+                    using (Graphics graphics = Graphics.FromImage(bitmap))
+                    {
+                        IntPtr hdc = graphics.GetHdc();
+                        PrintWindow(hWnd, hdc, 0);
+                        graphics.ReleaseHdc(hdc);
+                    }
+
+                    string frame = PrintBitmap(bitmap, sizeMultiplier, count);
+                    string[] frameRows = frame.Split('\n');
+                    Console.SetBufferSize(
+                        frameRows[1].Length < Console.BufferWidth ? Console.BufferWidth : frameRows[1].Length,
+                        frameRows.Length < Console.BufferHeight ? Console.BufferHeight : frameRows.Length);
+
+                    Console.SetCursorPosition(0, 0);
+                    // Console.Clear();
+                    Console.WriteLine(frame);
+
+#if DEBUG
+                    using (StreamWriter streamWriter = File.CreateText($"ascii-image{count}.txt"))
+                        streamWriter.WriteLine(frame);
+#endif
+                }
+                count++;
+
+                // Wait for a short time before trying again
+                Thread.Sleep(DELAY);
+            }
         }
-
-        float sizeMultiplier = 1.0f;
-        string sizeMultiplierStr = "";
-
-        do
+        catch (Exception e)
         {
-            WriteColored("[INPUT] Please enter a size multiplier. Default value is 1.0 (Larger values than 1.0 may result in unstable outputs): ",
-                ConsoleColor.Cyan,
-                new Vector2(1, 5));
-            sizeMultiplierStr = Console.ReadLine();
-
-            if (string.IsNullOrEmpty(sizeMultiplierStr))
-                break;
-        } while (!float.TryParse(sizeMultiplierStr, out sizeMultiplier));
-
-        Console.Clear();
-
-        IntPtr hWnd = FindWindow(null, windowTitle);
-
-        if (hWnd == IntPtr.Zero)
-        {
-            WriteColored($"[ERROR]Windows with title \"{windowTitle}\" not found!\n", ConsoleColor.Red, new Vector2(1, 5));
+            WriteColored($"[ERROR] {e.Message}", ConsoleColor.Red, new Vector2(1, 5));
             Console.ReadKey(true);
             return;
-        }
-
-        int count = 0;
-        Console.CursorVisible = false;
-        while (true)
-        {
-            // Check if the window is still present
-            if (!IsWindow(hWnd))
-                break;
-
-            // Set the window to the foreground
-            SetForegroundWindow(hWnd);
-
-            // Capture the window image
-            Rectangle rect = new Rectangle(0, 0, 0, 0);
-            GetWindowRect(hWnd, ref rect);
-            using (Bitmap bitmap = new Bitmap(rect.Width, rect.Height))
-            {
-                using (Graphics graphics = Graphics.FromImage(bitmap))
-                {
-                    IntPtr hdc = graphics.GetHdc();
-                    PrintWindow(hWnd, hdc, 0);
-                    graphics.ReleaseHdc(hdc);
-                }
-
-                string frame = PrintBitmap(bitmap, sizeMultiplier, count);
-                string[] frameRows = frame.Split('\n');
-                Console.SetBufferSize(
-                    frameRows[1].Length < Console.BufferWidth ? Console.BufferWidth : frameRows[1].Length,
-                    frameRows.Length < Console.BufferHeight ? Console.BufferHeight : frameRows.Length);
-
-                Console.SetCursorPosition(0, 0);
-                // Console.Clear();
-                Console.WriteLine(frame);
-
-#if DEBUG
-                using (StreamWriter streamWriter = File.CreateText($"ascii-image{count}.txt"))
-                    streamWriter.WriteLine(frame);
-#endif
-            }
-            count++;
-
-            // Wait for a short time before trying again
-            Thread.Sleep(DELAY);
         }
     }
 
