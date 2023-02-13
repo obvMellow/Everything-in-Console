@@ -91,7 +91,7 @@ public class Program
                 throw new ArgumentException($"Windows with title \"{windowTitle}\" not found!\n");
             }
 
-            int count = 0;
+            int frameCount = 0;
             Console.CursorVisible = false;
             while (true)
             {
@@ -100,7 +100,8 @@ public class Program
                     break;
 
                 // Set the window to the foreground
-                SetForegroundWindow(hWnd);
+                if (frameCount % 100 == 0)
+                    SetForegroundWindow(hWnd);
 
                 // Capture the window image
                 Rectangle rect = new Rectangle(0, 0, 0, 0);
@@ -114,7 +115,7 @@ public class Program
                         graphics.ReleaseHdc(hdc);
                     }
 
-                    string frame = PrintBitmap(bitmap, sizeMultiplier, count);
+                    string frame = PrintBitmap(bitmap, sizeMultiplier, frameCount);
                     string[] frameRows = frame.Split('\n');
                     Console.SetBufferSize(
                         frameRows[1].Length < Console.BufferWidth ? Console.BufferWidth : frameRows[1].Length,
@@ -129,7 +130,7 @@ public class Program
                         streamWriter.WriteLine(frame);
 #endif
                 }
-                count++;
+                frameCount++;
 
                 // Wait for a short time before trying again
                 Thread.Sleep(DELAY);
@@ -138,6 +139,7 @@ public class Program
         catch (Exception e)
         {
             WriteColored($"[ERROR] {e.Message}", ConsoleColor.Red, new Vector2(1, 5));
+            Console.WriteLine("\nPress ENTER key to exit...");
             Console.ReadKey(true);
             return;
         }
